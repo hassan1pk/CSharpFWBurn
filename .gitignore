@@ -3,3 +3,5 @@
 ################################################################################
 
 /.vs/CSharpFWBurn/v16/.suo
+/CSharpFWBurn/obj/Debug
+/CSharpFWBurn/bin/Debug
