@@ -31,8 +31,8 @@ namespace CSharpFWBurn
             public string StringOscillator;
             public byte[] binaryContent;
             public int nQuestionMarks;
-            public ulong binaryOffset;
-            public ulong binaryLength;
+            public uint binaryOffset;
+            public uint binaryLength;
         }
 
         public static ISP_ENVIRONMENTSTRUCT ISP_ENVIRONMENT = new ISP_ENVIRONMENTSTRUCT();
@@ -52,7 +52,7 @@ namespace CSharpFWBurn
             ISP_ENVIRONMENT.binaryContent = ReadFirmwareData();
             ISP_ENVIRONMENT.nQuestionMarks = 10;
             ISP_ENVIRONMENT.binaryOffset = 0;
-            ISP_ENVIRONMENT.binaryLength = Convert.ToUInt64(ISP_ENVIRONMENT.binaryContent.Length);
+            ISP_ENVIRONMENT.binaryLength = Convert.ToUInt32(ISP_ENVIRONMENT.binaryContent.Length);
 
             LPCTypes.RAMSize = 8;
             LPCTypes.FlashSectors = 8;
@@ -65,7 +65,6 @@ namespace CSharpFWBurn
             _serialPort.ReadTimeout = 1000;
             _serialPort.Open();
 
-            //Console.Write(ReceiveComPort());
             File.WriteAllText("MyLogFile.txt", "");
 
             NxpDownload();
@@ -85,23 +84,7 @@ namespace CSharpFWBurn
             try
             {
                 _serialPort.ReadTimeout = timeoutInMilliseconds;
-                //string message = "";
-
-                /*DateTime lastRead = DateTime.Now;
-                while (true && (DateTime.Now - lastRead).TotalMilliseconds < 100)
-                {
-                    Answer += _serialPort.ReadLine().Trim() + "\r\n";
-                    lastRead = DateTime.Now;
-                }*/
-
-                /*DateTime lastRead = DateTime.Now;
-                while(_serialPort.BytesToRead <=0 && (DateTime.Now - lastRead).TotalMilliseconds < timeoutInMilliseconds)
-                {
-                    Thread.Sleep(100);
-                }
-
-                Answer = _serialPort.ReadExisting();*/
-
+                
                 Answer = _serialPort.ReadLine().Trim() + "\r\n";
                 if (verify)
                 {
@@ -114,12 +97,6 @@ namespace CSharpFWBurn
                     Thread.Sleep(timeoutInMilliseconds);
                     _serialPort.ReadExisting();
                 }
-
-                
-
-
-
-
 
             }
             catch (TimeoutException) { }
@@ -135,7 +112,7 @@ namespace CSharpFWBurn
 
         public static byte[] ReadFirmwareData()
         {
-            string text = File.ReadAllText("byte_array26.txt");
+            string text = File.ReadAllText("byte_array27.txt");
             string[] strNumbers = text.Split(new string[] { "\r\n" }, StringSplitOptions.None);
             byte[] resultArr = new byte[strNumbers.Length];
             for (int i = 0; i < strNumbers.Length; i++)
@@ -149,7 +126,7 @@ namespace CSharpFWBurn
         public static void NxpDownload()
         {
             string Answer = "";
-            ulong Sector=0, SectorStart=0, SectorLength, SectorOffset, SectorChunk=0, CopyLength, block_CRC;
+            uint Sector=0, SectorStart=0, SectorLength, SectorOffset, SectorChunk=0, CopyLength, block_CRC;
             uint ivt_CRC;          // CRC over interrupt vector table
             int Line;
             uint c, k = 0;
@@ -349,7 +326,7 @@ namespace CSharpFWBurn
                     SendComPort("G 0 T\r\n");
 
                     if ((ISP_ENVIRONMENT.binaryOffset < LPC_RAMSTART_LPC11XX)
-                    || (ISP_ENVIRONMENT.binaryOffset >= (ulong)LPC_RAMSTART_LPC11XX + (LPCTypes.RAMSize * 1024)))
+                    || (ISP_ENVIRONMENT.binaryOffset >= (uint)LPC_RAMSTART_LPC11XX + (LPCTypes.RAMSize * 1024)))
                     {
                         ReceiveComPort(ref Answer, 5000, true);
 
@@ -374,7 +351,7 @@ namespace CSharpFWBurn
                 Console.WriteLine("Sector " + Sector + ": ");
 
                 if ((ISP_ENVIRONMENT.binaryOffset < LPC_RAMSTART_LPC11XX)  // Skip Erase when running from RAM
-                || (ISP_ENVIRONMENT.binaryOffset >= (ulong)LPC_RAMSTART_LPC11XX + (LPCTypes.RAMSize * 1024)))
+                || (ISP_ENVIRONMENT.binaryOffset >= (uint)LPC_RAMSTART_LPC11XX + (LPCTypes.RAMSize * 1024)))
                 {
                     SendComPort("P " + Sector + " " + Sector + "\r\n");
                     ReceiveComPort(ref Answer, 5000, true);
@@ -456,22 +433,22 @@ namespace CSharpFWBurn
                         Line = 0;
 
                         // Transfer blocks of 45 * 4 bytes to RAM
-                        for (ulong Pos = SectorStart + SectorOffset; (Pos < SectorStart + SectorOffset + CopyLength) && (Pos < ISP_ENVIRONMENT.binaryLength); Pos += (45 * 4))
+                        for (uint Pos = SectorStart + SectorOffset; (Pos < SectorStart + SectorOffset + CopyLength) && (Pos < ISP_ENVIRONMENT.binaryLength); Pos += (45 * 4))
                         {
-                            for (ulong Block = 0; Block < 4; Block++)  // Each block 45 bytes
+                            for (uint Block = 0; Block < 4; Block++)  // Each block 45 bytes
                             {
                                 Console.Write(".");
 
-                                ulong tmpStringPos = 0;
+                                uint tmpStringPos = 0;
 
                                 sendbuf[Line][tmpStringPos++] = (char)(' ' + 45);
 
-                                for (ulong BlockOffset = 0; BlockOffset < 45; BlockOffset++)
+                                for (uint BlockOffset = 0; BlockOffset < 45; BlockOffset++)
                                 {
                                     
 
                                     if ((ISP_ENVIRONMENT.binaryOffset < LPC_RAMSTART_LPC11XX)
-                                    || (ISP_ENVIRONMENT.binaryOffset >= (ulong)LPC_RAMSTART_LPC11XX + (LPCTypes.RAMSize * 1024)))
+                                    || (ISP_ENVIRONMENT.binaryOffset >= (uint)LPC_RAMSTART_LPC11XX + (LPCTypes.RAMSize * 1024)))
                                     { // Flash: use full memory
                                         if ((Pos + Block * 45 + BlockOffset) < ISP_ENVIRONMENT.binaryLength)
                                         {
@@ -491,7 +468,7 @@ namespace CSharpFWBurn
                                     //{
                                     //    Console.WriteLine(block_CRC + ", " + (Pos + Block * 45 + BlockOffset)+", " + ISP_ENVIRONMENT.binaryContent[Pos + Block * 45 + BlockOffset]);
                                     //}
-                                    block_CRC += (ulong)c;
+                                    block_CRC += (uint)c;
 
                                     k = (k << 8) + (c & 255);
 
@@ -595,7 +572,7 @@ namespace CSharpFWBurn
                     }
 
                     if ((ISP_ENVIRONMENT.binaryOffset < LPC_RAMSTART_LPC11XX)
-                    || (ISP_ENVIRONMENT.binaryOffset >= (ulong)LPC_RAMSTART_LPC11XX + (LPCTypes.RAMSize * 1024)))
+                    || (ISP_ENVIRONMENT.binaryOffset >= (uint)LPC_RAMSTART_LPC11XX + (LPCTypes.RAMSize * 1024)))
                     {
                         SendComPort("P " + Sector + " " + Sector + "\r\n");
 
