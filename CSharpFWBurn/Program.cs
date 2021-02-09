@@ -112,7 +112,7 @@ namespace CSharpFWBurn
 
         public static byte[] ReadFirmwareData()
         {
-            string text = File.ReadAllText("byte_array27.txt");
+            string text = File.ReadAllText("byte_array27_SK.txt");
             string[] strNumbers = text.Split(new string[] { "\r\n" }, StringSplitOptions.None);
             byte[] resultArr = new byte[strNumbers.Length];
             for (int i = 0; i < strNumbers.Length; i++)
